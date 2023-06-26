@@ -1,0 +1,13 @@
+{
+    "members": [
+      "trevor",
+      "josh",
+      "rob"
+    ],
+    "questions": [
+      "yesterday",
+      "today",
+      "blocked"
+    ],
+    "slackHook": "url to slack integration"
+  }

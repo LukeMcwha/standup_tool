@@ -37,7 +37,7 @@ func FormatSlackMessage(answers map[string][]Question) string {
 		sb.WriteString(fmt.Sprintf("%s:\n", strings.Title(name)))
 
 		for _, question := range questions {
-			sb.WriteString(fmt.Sprintf("%s: %s:\n", question.Title, question.Answer))
+			sb.WriteString(fmt.Sprintf("%s: %s\n", question.Title, question.Answer))
 		}
 
 		sb.WriteString("\n")
@@ -54,6 +54,9 @@ func main() {
 	saveFileLocation := "save.json"
 
 	// Get Config and read it into struct
+	if _, err := os.Stat(configFileLocation); err != nil {
+		panic(err)
+	}
 	jsonFile, err := os.Open(configFileLocation)
 	if err != nil {
 		fmt.Println(err)
@@ -70,20 +73,26 @@ func main() {
 	}
 
 	// Yesterdays Information
-	standupJ, err := os.Open(saveFileLocation)
-	if err != nil {
-		fmt.Println(err)
-	}
-	b, err := ioutil.ReadAll(standupJ)
-	if err != nil {
-		panic(err)
-	}
 	yesterday := map[string][]Question{}
-	err = json.Unmarshal(b, &yesterday)
-	if err != nil {
-		panic(err)
+
+	// If save file exists, read it.
+	if _, err := os.Stat(saveFileLocation); err == nil {
+		standupJ, err := os.Open(saveFileLocation)
+		if err != nil {
+			fmt.Println(err)
+		}
+		b, err := ioutil.ReadAll(standupJ)
+		if err != nil {
+			panic(err)
+		}
+
+		err = json.Unmarshal(b, &yesterday)
+		if err != nil {
+			panic(err)
+		}
+		standupJ.Close()
+
 	}
-	standupJ.Close()
 
 	// Create a reader
 	reader := bufio.NewReader(os.Stdin)
@@ -101,16 +110,21 @@ func main() {
 		fmt.Printf("-- %s\n\n", name)
 
 		for j, question := range config.Questions {
-			info := yesterday[name][j].Answer
+			previousAnswer := ""
+			yday, ok := yesterday[name]
+			if ok {
+				qAns := yday[j]
+				previousAnswer = qAns.Answer
+			}
 
-			fmt.Printf("%s? (%s)\n", question, info)
+			fmt.Printf("%s? (%s)\n", question, previousAnswer)
 			text, _ := reader.ReadString('\n')
 
 			// convert CRLF to LF
 			text = strings.Replace(text, "\n", "", -1)
 
 			if text == "" {
-				text = info
+				text = previousAnswer
 			}
 
 			ans := Question{
