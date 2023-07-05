@@ -113,8 +113,13 @@ func main() {
 			previousAnswer := ""
 			yday, ok := yesterday[name]
 			if ok {
-				qAns := yday[j]
-				previousAnswer = qAns.Answer
+				if question == "yesterday" {
+					qAns := yday[1]
+					previousAnswer = qAns.Answer
+				} else {
+					qAns := yday[j]
+					previousAnswer = qAns.Answer
+				}
 			}
 
 			fmt.Printf("%s? (%s)\n", question, previousAnswer)
